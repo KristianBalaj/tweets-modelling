@@ -21,10 +21,10 @@ executable db-proj
   hs-source-dirs: src
   ghc-options: -Wall
   other-modules:
-    Tweet,
-    User,
-    Place,
-    Coordinates
+    Models.Tweet,
+    Models.User,
+    Models.Coordinates,
+    Models.Country
   -- other-extensions:
   build-depends:       
     base >=4.13 && <4.14,

@@ -7,7 +7,7 @@ module Main where
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as B
 import Database.PostgreSQL.Simple
-import Tweet
+import Models.Tweet
 
 connectionString :: ByteString
 connectionString =
