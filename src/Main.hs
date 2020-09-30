@@ -31,11 +31,16 @@ main = do
   hashtagsMap <- insertAllHashtagsFromData conn
 
   _ <- insertAllUsersFromData conn
+  print . (++ " --- Finished inserting users.") =<< (show <$> getZonedTime)
 
   _ <- insertAllTweets conn countriesMap
+  print . (++ " --- Finished inserting tweets.") =<< (show <$> getZonedTime)
 
   _ <- insertAllMentionsFromData conn
+  print . (++ " --- Finished inserting tweet mentions.") =<< (show <$> getZonedTime)
+
   _ <- insertAllTweetHashtags conn hashtagsMap
+  print . (++ " --- Finished inserting tweet hashtags.") =<< (show <$> getZonedTime)
 
   addConstraintsToTweets conn
   addConstraintsToTweetMentions conn
