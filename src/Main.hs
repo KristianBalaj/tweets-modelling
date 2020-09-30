@@ -74,7 +74,7 @@ insertAllCountriesFromData conn = do
   insertCountries conn (mapMaybe tweetCountry tweets)
 
 parsedTweets :: IO [Tweet]
-parsedTweets = take 500 <$> catMaybes <$> map (parseTweet . encodeUtf8) <$> tweetsByLines
+parsedTweets = mapMaybe (parseTweet . encodeUtf8) <$> tweetsByLines
   where
     dirPath = "data" :: FilePath
     suffix = ".jsonl.gz" :: String

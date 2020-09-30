@@ -32,6 +32,7 @@ instance FromJSON Coordinates where
                 [_, lat] -> return lat
                 _ -> mzero
           )
+  parseJSON _ = mzero
 
 instance ToField Coordinates where
   toField coords = Plain (byteString $ BSU.fromString $ "st_setsrid(st_point(" ++ show (longitude coords) ++ ", " ++ show (latitude coords) ++ "), 4326)")

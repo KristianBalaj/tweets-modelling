@@ -19,8 +19,6 @@ import Database.PostgreSQL.Simple
     executeMany,
     returning,
   )
-import Database.PostgreSQL.Simple.ToField
-import Database.PostgreSQL.Simple.ToRow
 import GHC.Generics
 import Models.Coordinates
 import Models.Country

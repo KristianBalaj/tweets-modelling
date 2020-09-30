@@ -3,6 +3,7 @@
 
 module Models.User (User (..), insertUsers) where
 
+import Control.Monad (MonadPlus (mzero))
 import Data.Aeson
 import Data.Int (Int64)
 import Data.List.Split (chunksOf)
@@ -31,6 +32,7 @@ instance FromJSON User where
       <*> (o .: "followers_count")
       <*> (o .: "friends_count")
       <*> (o .: "statuses_count")
+  parseJSON _ = mzero
 
 instance ToRow User where
   toRow t =
