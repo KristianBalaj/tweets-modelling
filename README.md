@@ -11,5 +11,5 @@ This data is imported to a `PostgreSQL` database according to the following mode
 
 ## Notes
 
-**Space complexity** of the program is **asymptotycally equal** to ***O(1)***.
+**Space complexity** of the program is **asymptotically equal** to ***O(1)***.
 The insertion into the database is done via bulk insert. The bulk insert is done by chunks to preserve the constant space complexity. The chunk size is set by the `Database.Database.insertChunkSize` value.
