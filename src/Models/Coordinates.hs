@@ -1,7 +1,10 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Models.Coordinates where
+module Models.Coordinates
+  ( Coordinates (..),
+  )
+where
 
 import Control.Monad (MonadPlus (mzero))
 import Data.Aeson

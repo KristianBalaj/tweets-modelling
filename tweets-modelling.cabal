@@ -24,7 +24,11 @@ executable db-proj
     Models.Tweet,
     Models.User,
     Models.Coordinates,
-    Models.Country
+    Models.Country,
+    Database.Database,
+    Database.TweetsHandling,
+    Database.UsersHandling,
+    Database.CountriesHandling
   -- other-extensions:
   build-depends:       
     base >=4.13 && <4.14,

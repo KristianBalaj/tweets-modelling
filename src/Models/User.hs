@@ -1,15 +1,15 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Models.User (User (..), insertUsers) where
+module Models.User
+  ( User (..),
+  )
+where
 
 import Control.Monad (MonadPlus (mzero))
 import Data.Aeson
-import Data.Int (Int64)
-import Data.List.Split (chunksOf)
-import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.ToField
-import Database.PostgreSQL.Simple.ToRow
+import Database.PostgreSQL.Simple.ToRow (ToRow (toRow))
 import GHC.Generics
 
 data User = User
@@ -44,12 +44,3 @@ instance ToRow User where
       toField (friendsCount t),
       toField (statusesCount t)
     ]
-
-insertUsers :: Connection -> [User] -> IO Int64
-insertUsers conn users = sum <$> mapM insert (chunksOf 5000 users)
-  where
-    insert :: [User] -> IO Int64
-    insert =
-      executeMany
-        conn
-        "INSERT INTO accounts (id, screen_name, name, description, followers_count, friends_count, statuses_count) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING"
