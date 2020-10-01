@@ -15,7 +15,7 @@ import Data.Int (Int64)
 import Data.List.Split (chunksOf)
 import qualified Data.Map as Map
 import Data.Maybe
-import Database.Database
+import Database.Database (insertChunkSize)
 import Database.PostgreSQL.Simple
   ( Connection,
     Only (Only),
@@ -28,8 +28,11 @@ import Models.User
 
 insertHashtags :: Connection -> [String] -> IO (Map.Map String Int)
 insertHashtags conn hashtags = do
-  res :: [(String, Int)] <- returning conn "INSERT INTO hashtags (value) VALUES (?) ON CONFLICT DO NOTHING RETURNING value, id" $ map Only hashtags
+  res <- join <$> mapM insert (chunksOf insertChunkSize $ filter (\x -> length x > 0) hashtags)
   return $ Map.fromList res
+  where
+    insert :: [String] -> IO [(String, Int)]
+    insert chunk = returning conn "INSERT INTO hashtags (value) VALUES (?) ON CONFLICT DO NOTHING RETURNING value, id" $ map Only chunk
 
 insertTweets :: Connection -> Map.Map String Int -> [Tweet] -> IO Int64
 insertTweets conn countryCodeToIdMap tweets =

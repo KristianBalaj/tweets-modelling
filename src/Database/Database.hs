@@ -57,7 +57,7 @@ addConstraintsToTweetMentions conn =
     ]
 
 addConstraintsToTweetHashtags :: Connection -> IO ()
-addConstraintsToTweetHashtags conn = do
+addConstraintsToTweetHashtags conn =
   mapM_
     (execute_ conn)
     [ -- deleting rows with missing refs
