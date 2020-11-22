@@ -1,10 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Database.UsersHandling (insertUsers) where
+module Postgres.Database.UsersHandling (insertUsers) where
 
 import Data.Int (Int64)
 import Data.List.Split (chunksOf)
-import Database.Database (insertChunkSize)
+import Postgres.Database.Database (insertChunkSize)
 import Database.PostgreSQL.Simple (Connection, executeMany)
 import Models.User (User)
 

@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Database.Database
+module Postgres.Database.Database
   ( insertChunkSize,
     connect2Postgres,
     addConstraintsToTweetHashtags,

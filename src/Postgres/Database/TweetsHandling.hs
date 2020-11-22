@@ -2,7 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections #-}
 
-module Database.TweetsHandling
+module Postgres.Database.TweetsHandling
   ( insertHashtags,
     insertTweets,
     insertUserMentions,
@@ -15,7 +15,7 @@ import Data.Int (Int64)
 import Data.List.Split (chunksOf)
 import qualified Data.Map as Map
 import Data.Maybe
-import Database.Database (insertChunkSize)
+import Postgres.Database.Database (insertChunkSize)
 import Database.PostgreSQL.Simple
   ( Connection,
     Only (Only),
@@ -28,7 +28,7 @@ import Models.User
 
 insertHashtags :: Connection -> [String] -> IO (Map.Map String Int)
 insertHashtags conn hashtags = do
-  res <- join <$> mapM insert (chunksOf insertChunkSize $ filter (\x -> length x > 0) hashtags)
+  res <- join <$> mapM insert (chunksOf insertChunkSize $ filter (not . null) hashtags)
   return $ Map.fromList res
   where
     insert :: [String] -> IO [(String, Int)]

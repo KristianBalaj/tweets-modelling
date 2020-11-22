@@ -1,12 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Database.CountriesHandling (insertCountries) where
+module Postgres.Database.CountriesHandling (insertCountries) where
 
 import Control.Monad (join)
 import Data.List.Split (chunksOf)
 import qualified Data.Map as Map
-import Database.Database (insertChunkSize)
+import Postgres.Database.Database (insertChunkSize)
 import Database.PostgreSQL.Simple (Connection, returning)
 import Models.Country
 

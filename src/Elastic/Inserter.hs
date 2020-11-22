@@ -1,0 +1,1 @@
+module Elastic.Inserter where
