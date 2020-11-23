@@ -34,6 +34,8 @@ instance FromJSON User where
       <*> (o .: "statuses_count")
   parseJSON _ = mzero
 
+instance ToJSON User
+
 instance ToRow User where
   toRow t =
     [ toField (userId t),

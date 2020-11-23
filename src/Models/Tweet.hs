@@ -14,6 +14,7 @@ import qualified Data.ByteString.Lazy as B
 import GHC.Generics
 import Models.Coordinates
 import Models.Country
+import Models.TweetMention
 import Models.User
 
 data Tweet = Tweet
@@ -26,7 +27,7 @@ data Tweet = Tweet
     tweetAuthor :: User,
     tweetCountry :: Maybe Country,
     parentTweet :: Maybe Tweet,
-    mentionedUsersIds :: [Integer],
+    mentionedUsers :: [TweetMention],
     tweetHashtags :: [String]
   }
   deriving (Show, Generic)
@@ -42,15 +43,18 @@ instance FromJSON Tweet where
       <*> (o .: "user")
       <*> (o .:? "place" <|> return Nothing)
       <*> (o .:? "retweeted_status")
-      <*> ( do
-              res <- (o .: "entities") >>= (.: "user_mentions")
-              mapM (.: "id") res
-          )
+      <*> ((o .: "entities") >>= (.: "user_mentions"))
       <*> ( do
               res <- (o .: "entities") >>= (.: "hashtags")
               mapM (.: "text") res
           )
   parseJSON _ = mzero
+
+-- shiat :: Tweet -> ElasticTweet
+-- shiat tweet = ElasticTweet tweet
+
+-- instance ToJSON Tweet where
+--   toJSON tweet = genericToJSON --object ["id_str" .= tweetId tweet, ]
 
 parseTweet :: B.ByteString -> Maybe Tweet
 parseTweet = decode

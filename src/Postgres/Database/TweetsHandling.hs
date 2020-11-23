@@ -15,7 +15,6 @@ import Data.Int (Int64)
 import Data.List.Split (chunksOf)
 import qualified Data.Map as Map
 import Data.Maybe
-import Postgres.Database.Database (insertChunkSize)
 import Database.PostgreSQL.Simple
   ( Connection,
     Only (Only),
@@ -24,7 +23,9 @@ import Database.PostgreSQL.Simple
   )
 import Models.Country
 import Models.Tweet
-import Models.User
+import Models.TweetMention as TweetMention
+import Models.User as User
+import Postgres.Database.Database (insertChunkSize)
 
 insertHashtags :: Connection -> [String] -> IO (Map.Map String Int)
 insertHashtags conn hashtags = do
@@ -62,7 +63,7 @@ insertTweets conn countryCodeToIdMap tweets =
                 retweetCount x,
                 favoriteCount x,
                 happenedAt x,
-                userId (tweetAuthor x),
+                User.userId (tweetAuthor x),
                 (countryCode <$> tweetCountry x) >>= (`Map.lookup` countryCodeToIdMap),
                 tweetId <$> parentTweet x
               )
@@ -73,7 +74,7 @@ insertUserMentions :: Connection -> [Tweet] -> IO Int64
 insertUserMentions conn tweets = sum <$> mapM insert insertionChunks
   where
     mentionsTuples :: Tweet -> [(Integer, String)]
-    mentionsTuples tweet = map (,tweetId tweet) $ mentionedUsersIds tweet
+    mentionsTuples tweet = map ((,tweetId tweet) . TweetMention.userId) $ mentionedUsers tweet
 
     insertionChunks :: [[(Integer, String)]]
     insertionChunks = chunksOf insertChunkSize $ join $ map mentionsTuples tweets

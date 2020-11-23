@@ -26,5 +26,7 @@ instance FromJSON Country where
       <*> (o .: "country")
   parseJSON _ = mzero
 
+instance ToJSON Country
+
 instance ToRow Country where
   toRow t = [toField (countryCode t), toField (countryName t)]

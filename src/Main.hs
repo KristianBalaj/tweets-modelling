@@ -4,18 +4,20 @@ module Main where
 
 import qualified Codec.Compression.GZip as GZip
 import Control.Monad
+import Data.Aeson
 import qualified Data.ByteString.Lazy as B
 import Data.List
 import Data.Maybe
 import qualified Data.Text.Lazy as L
 import Data.Text.Lazy.Encoding
+import Elastic.ElasticTweet
 import Models.Tweet
 import System.Directory (doesDirectoryExist, getDirectoryContents)
 import System.FilePath (combine)
 
 main :: IO ()
 main = do
-  print ""
+  parsedTweets >>= print . decodeUtf8 . encode . map ElasticTweet . take 5
 
 parsedTweets :: IO [Tweet]
 parsedTweets = mapMaybe (parseTweet . encodeUtf8) <$> tweetsByLines

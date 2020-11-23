@@ -25,12 +25,14 @@ executable db-proj
     Models.User,
     Models.Coordinates,
     Models.Country,
+    Models.TweetMention,
     Postgres.Inserter,
     Postgres.Database.Database,
     Postgres.Database.TweetsHandling,
     Postgres.Database.UsersHandling,
     Postgres.Database.CountriesHandling,
-    Elastic.Inserter
+    Elastic.Inserter,
+    Elastic.ElasticTweet
   -- other-extensions:
   build-depends:       
     base >=4.13 && <4.14,
