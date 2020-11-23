@@ -12,7 +12,6 @@ import Data.Text.Lazy.Encoding
 import Data.Time (getZonedTime)
 import Elastic.Inserter as Elastic
 import Models.Tweet
-import Postgres.Inserter as PostgresInserter
 import System.Directory (doesDirectoryExist, getDirectoryContents)
 import System.FilePath (combine)
 
