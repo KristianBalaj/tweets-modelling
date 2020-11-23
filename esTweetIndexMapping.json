@@ -1,0 +1,38 @@
+{
+  "mappings": {
+    "properties": {
+      "id": { "type": "text" },
+      "tweetContent": { "type": "text" },
+      "location": { "type": "geo_point" },
+      "retweetCount": { "type": "integer" },
+      "favoriteCount": { "type": "integer" },
+      "createdAt": { "type": "date" },
+      "author": {
+        "properties": {
+          "userId": { "type": "integer" },
+          "userScreenName": { "type": "text" },
+          "userName": { "type": "text" },
+          "userDescription": { "type": "text" },
+          "followersCount": { "type": "integer" },
+          "friendsCount": { "type": "integer" },
+          "statusesCount": { "type": "integer" }
+        }
+      },
+      "country": {
+        "properties": {
+          "countryCode": { "type": "text" },
+          "countryName": { "type": "text" }
+        }
+      },
+      "parentTweetId": { "type": "text" },
+      "mentions": {
+        "properties": {
+          "userId": { "type": "integer" },
+          "screenName": { "type": "text" },
+          "name": { "type": "text" }
+        }
+      },
+      "hashtags": { "type": "text" }
+    }
+  }
+}
