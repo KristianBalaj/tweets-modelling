@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Elastic.ElasticTweet (ElasticTweet (..)) where
+module Elastic.Models.ElasticTweet (ElasticTweet (..)) where
 
 import Data.Aeson
 import Data.Aeson.Types
@@ -9,11 +9,6 @@ import Models.Coordinates
 import Models.Tweet
 
 newtype ElasticTweet = ElasticTweet Tweet
-
--- | Similar to `object` function except this removes all the `Null` values from the result JSON.
--- | Credits to: https://stackoverflow.com/questions/19665099/data-aeson-encoding-optional-keys#comment43757457_19666176
-objectNoNulls :: [Pair] -> Value
-objectNoNulls = object . filter (\(_, value) -> value /= Null)
 
 instance ToJSON ElasticTweet where
   toJSON (ElasticTweet tweet) =
@@ -35,3 +30,8 @@ instance ToJSON ElasticTweet where
         "mentions" .= mentionedUsers tweet,
         "hashtags" .= tweetHashtags tweet
       ]
+
+-- | Similar to `object` function except this removes all the `Null` values from the result JSON.
+-- | Credits to: https://stackoverflow.com/questions/19665099/data-aeson-encoding-optional-keys#comment43757457_19666176
+objectNoNulls :: [Pair] -> Value
+objectNoNulls = object . filter (\(_, value) -> value /= Null)

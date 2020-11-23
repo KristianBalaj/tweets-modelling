@@ -50,11 +50,5 @@ instance FromJSON Tweet where
           )
   parseJSON _ = mzero
 
--- shiat :: Tweet -> ElasticTweet
--- shiat tweet = ElasticTweet tweet
-
--- instance ToJSON Tweet where
---   toJSON tweet = genericToJSON --object ["id_str" .= tweetId tweet, ]
-
 parseTweet :: B.ByteString -> Maybe Tweet
 parseTweet = decode

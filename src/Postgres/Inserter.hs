@@ -14,7 +14,6 @@ import Postgres.Database.UsersHandling (insertUsers)
 
 insert :: [Tweet] -> IO ()
 insert tweets = do
-  getZonedTime >>= print
   conn <- connect2Postgres
 
   countriesMap <- insertAllCountriesFromData conn tweets
@@ -35,8 +34,6 @@ insert tweets = do
   addConstraintsToTweets conn
   addConstraintsToTweetMentions conn
   addConstraintsToTweetHashtags conn
-
-  getZonedTime >>= print
 
 insertAllCountriesFromData :: Connection -> [Tweet] -> IO (Map.Map String Int)
 insertAllCountriesFromData conn tweets = do

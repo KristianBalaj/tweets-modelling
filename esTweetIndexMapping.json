@@ -6,10 +6,10 @@
       "location": { "type": "geo_point" },
       "retweetCount": { "type": "integer" },
       "favoriteCount": { "type": "integer" },
-      "createdAt": { "type": "date" },
+      "createdAt": { "type": "date", "format": "EEE LLL dd HH:mm:ss Z yyyy" },
       "author": {
         "properties": {
-          "userId": { "type": "integer" },
+          "userId": { "type": "unsigned_long" },
           "userScreenName": { "type": "text" },
           "userName": { "type": "text" },
           "userDescription": { "type": "text" },
@@ -27,7 +27,7 @@
       "parentTweetId": { "type": "text" },
       "mentions": {
         "properties": {
-          "userId": { "type": "integer" },
+          "userId": { "type": "unsigned_long" },
           "screenName": { "type": "text" },
           "name": { "type": "text" }
         }

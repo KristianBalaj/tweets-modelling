@@ -4,20 +4,35 @@ module Main where
 
 import qualified Codec.Compression.GZip as GZip
 import Control.Monad
-import Data.Aeson
 import qualified Data.ByteString.Lazy as B
-import Data.List
+import Data.List (isSuffixOf)
 import Data.Maybe
 import qualified Data.Text.Lazy as L
 import Data.Text.Lazy.Encoding
-import Elastic.ElasticTweet
+import Data.Time (getZonedTime)
+import Elastic.Inserter as Elastic
 import Models.Tweet
 import System.Directory (doesDirectoryExist, getDirectoryContents)
 import System.FilePath (combine)
 
 main :: IO ()
 main = do
-  parsedTweets >>= print . decodeUtf8 . encode . map ElasticTweet . take 5
+  getZonedTime >>= print
+
+  parsedTweets >>= Elastic.insert . extractNestedTweets . take 10000
+
+  getZonedTime >>= print
+
+-- | Takes all the nested Tweets and adds them to the top level, to the top level tweets.
+-- The result list then contains `top level tweets` and `all the nested tweets`.
+extractNestedTweets :: [Tweet] -> [Tweet]
+extractNestedTweets (x : xs) = extract (Just x) ++ extractNestedTweets xs
+  where
+    extract :: Maybe Tweet -> [Tweet]
+    extract tweet = case tweet of
+      Just a -> a : extract (parentTweet a)
+      Nothing -> []
+extractNestedTweets _ = []
 
 parsedTweets :: IO [Tweet]
 parsedTweets = mapMaybe (parseTweet . encodeUtf8) <$> tweetsByLines
