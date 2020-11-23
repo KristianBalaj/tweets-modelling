@@ -12,6 +12,7 @@ import Data.Text.Lazy.Encoding
 import Data.Time (getZonedTime)
 import Elastic.Inserter as Elastic
 import Models.Tweet
+import Postgres.Inserter as PostgresInserter
 import System.Directory (doesDirectoryExist, getDirectoryContents)
 import System.FilePath (combine)
 
@@ -19,7 +20,11 @@ main :: IO ()
 main = do
   getZonedTime >>= print
 
-  parsedTweets >>= Elastic.insert . extractNestedTweets . take 10000
+  -- This is the function to parse the data and import into the Elastic Search
+  parsedTweets >>= Elastic.insert . extractNestedTweets
+
+  -- This is the function to parse the data and import into the Postgres
+  -- parsedTweets >>= PostgresInserter.insert . extractNestedTweets
 
   getZonedTime >>= print
 
