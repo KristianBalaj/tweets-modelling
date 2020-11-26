@@ -1,4 +1,5 @@
 {
+  "dynamic": "strict",
   "mappings": {
     "properties": {
       "id": { "type": "text" },
