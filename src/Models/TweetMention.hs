@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Models.TweetMention where
 
@@ -15,10 +16,11 @@ data TweetMention = TweetMention
   deriving (Show, Generic)
 
 instance FromJSON TweetMention where
-  parseJSON (Object o) =
-    TweetMention <$> (o .: "id")
-      <*> (o .: "screen_name")
-      <*> (o .: "name")
+  parseJSON (Object o) = do
+    userId <- o .: "id"
+    screenName <- o .: "screen_name"
+    name <- o .: "name"
+    return TweetMention {..}
   parseJSON _ = mzero
 
 instance ToJSON TweetMention

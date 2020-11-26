@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Elastic.Models.ElasticTweet (ElasticTweet (..)) where
 
@@ -11,24 +12,24 @@ import Models.Tweet
 newtype ElasticTweet = ElasticTweet Tweet
 
 instance ToJSON ElasticTweet where
-  toJSON (ElasticTweet tweet) =
+  toJSON (ElasticTweet Tweet {tweetId = tweetIndex, ..}) =
     objectNoNulls
-      [ "id" .= tweetId tweet,
-        "tweetContent" .= tweetContent tweet,
+      [ "id" .= tweetIndex,
+        "tweetContent" .= tweetContent,
         "location"
-          .= ( tweetLocation tweet
+          .= ( tweetLocation
                  <&> ( \coords ->
                          object ["lat" .= latitude coords, "lon" .= longitude coords]
                      )
              ),
-        "retweetCount" .= retweetCount tweet,
-        "favoriteCount" .= favoriteCount tweet,
-        "createdAt" .= happenedAt tweet,
-        "author" .= tweetAuthor tweet,
-        "country" .= tweetCountry tweet,
-        "parentTweetId" .= (tweetId <$> parentTweet tweet),
-        "mentions" .= mentionedUsers tweet,
-        "hashtags" .= tweetHashtags tweet
+        "retweetCount" .= retweetCount,
+        "favoriteCount" .= favoriteCount,
+        "createdAt" .= happenedAt,
+        "author" .= tweetAuthor,
+        "country" .= tweetCountry,
+        "parentTweetId" .= (tweetId <$> parentTweet),
+        "mentions" .= mentionedUsers,
+        "hashtags" .= tweetHashtags
       ]
 
 -- | Similar to `object` function except this removes all the `Null` values from the result JSON.

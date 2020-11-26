@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Elastic.Models.BulkCommands where
 
@@ -14,11 +15,11 @@ data BulkCommand = BulkCommand
 newtype BulkIndexCommand = BulkIndexCommand BulkCommand
 
 instance ToJSON BulkIndexCommand where
-  toJSON (BulkIndexCommand command) =
+  toJSON (BulkIndexCommand BulkCommand {..}) =
     object
       [ "index"
           .= object
-            [ "_index" .= esIndex command,
-              "_id" .= documentId command
+            [ "_index" .= esIndex,
+              "_id" .= documentId
             ]
       ]

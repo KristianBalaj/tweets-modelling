@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Models.Country
@@ -21,9 +22,10 @@ data Country = Country
   deriving (Show, Generic, Eq)
 
 instance FromJSON Country where
-  parseJSON (Object o) =
-    Country <$> (o .: "country_code")
-      <*> (o .: "country")
+  parseJSON (Object o) = do
+    countryCode <- o .: "country_code"
+    countryName <- o .: "country"
+    return Country {..}
   parseJSON _ = mzero
 
 instance ToJSON Country

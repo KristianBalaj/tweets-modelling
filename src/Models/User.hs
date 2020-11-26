@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Models.User
   ( User (..),
@@ -24,14 +25,15 @@ data User = User
   deriving (Generic, Show)
 
 instance FromJSON User where
-  parseJSON (Object o) =
-    User <$> (o .: "id")
-      <*> (o .: "screen_name")
-      <*> (o .: "name")
-      <*> (o .:? "description")
-      <*> (o .: "followers_count")
-      <*> (o .: "friends_count")
-      <*> (o .: "statuses_count")
+  parseJSON (Object o) = do
+    userId <- o .: "id"
+    userScreenName <- o .: "screen_name"
+    userName <- o .: "name"
+    userDescription <- o .:? "description"
+    followersCount <- o .: "followers_count"
+    friendsCount <- o .: "friends_count"
+    statusesCount <- o .: "statuses_count"
+    return User {..}
   parseJSON _ = mzero
 
 instance ToJSON User

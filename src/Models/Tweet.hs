@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Models.Tweet
   ( Tweet (..),
@@ -33,21 +34,36 @@ data Tweet = Tweet
   deriving (Show, Generic)
 
 instance FromJSON Tweet where
-  parseJSON (Object o) =
-    Tweet <$> (o .: "id_str")
-      <*> (o .: "full_text")
-      <*> ((o .:? "coordinates") <|> return Nothing)
-      <*> (o .: "retweet_count")
-      <*> (o .:? "favorite_count")
-      <*> (o .: "created_at")
-      <*> (o .: "user")
-      <*> (o .:? "place" <|> return Nothing)
-      <*> (o .:? "retweeted_status")
-      <*> ((o .: "entities") >>= (.: "user_mentions"))
-      <*> ( do
-              res <- (o .: "entities") >>= (.: "hashtags")
-              mapM (.: "text") res
-          )
+  parseJSON (Object o) = do
+    tweetId <- o .: "id_str"
+    tweetContent <- o .: "full_text"
+    tweetLocation <- (o .:? "coordinates") <|> return Nothing
+    retweetCount <- o .: "retweet_count"
+    favoriteCount <- o .:? "favorite_count"
+    happenedAt <- o .: "created_at"
+    tweetAuthor <- o .: "user"
+    tweetCountry <- o .:? "place" <|> return Nothing
+    parentTweet <- o .:? "retweeted_status"
+    mentionedUsers <- (o .: "entities") >>= (.: "user_mentions")
+    tweetHashtags <- do
+      res <- (o .: "entities") >>= (.: "hashtags")
+      mapM (.: "text") res
+    return Tweet {..}
+  -- Not using RecordWildcard syntax version
+  -- Tweet <$> (o .: "id_str")
+  --   <*> (o .: "full_text")
+  --   <*> ((o .:? "coordinates") <|> return Nothing)
+  --   <*> (o .: "retweet_count")
+  --   <*> (o .:? "favorite_count")
+  --   <*> (o .: "created_at")
+  --   <*> (o .: "user")
+  --   <*> (o .:? "place" <|> return Nothing)
+  --   <*> (o .:? "retweeted_status")
+  --   <*> ((o .: "entities") >>= (.: "user_mentions"))
+  --   <*> ( do
+  --           res <- (o .: "entities") >>= (.: "hashtags")
+  --           mapM (.: "text") res
+  --       )
   parseJSON _ = mzero
 
 parseTweet :: B.ByteString -> Maybe Tweet
