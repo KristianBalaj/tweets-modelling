@@ -1,0 +1,7 @@
+{
+  "connectHost": "localhost",
+  "connectPort": 5432,
+  "connectUser": "xbalaj",
+  "connectPassword": "password",
+  "connectDatabase": "xbalaj"
+}

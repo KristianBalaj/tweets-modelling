@@ -1,33 +1,47 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Postgres.Database.Database
-  ( insertChunkSize,
-    connect2Postgres,
+  ( connect2Postgres,
     addConstraintsToTweetHashtags,
     addConstraintsToTweetMentions,
     addConstraintsToTweets,
+    DbEntityId (..),
+    insertEntities,
+    insertEntities_,
   )
 where
 
 import Data.ByteString (ByteString)
+import Data.Function
+import Data.Monoid
 import Database.PostgreSQL.Simple
+import Models.Tweet
+import Streaming
+import qualified Streaming.Prelude as S
+
+newtype DbEntityId a = MkDbEntityId Int
 
 insertChunkSize :: Int
 insertChunkSize = 5000
 
-connectionString :: ByteString
-connectionString =
-  postgreSQLConnectionString $
-    ConnectInfo
-      { connectHost = "localhost",
-        connectPort = 5432,
-        connectUser = "xbalaj",
-        connectPassword = "password",
-        connectDatabase = "xbalaj"
-      }
+connect2Postgres :: ConnectInfo -> IO Connection
+connect2Postgres = connectPostgreSQL . postgreSQLConnectionString
 
-connect2Postgres :: IO Connection
-connect2Postgres = connectPostgreSQL connectionString
+-- | Inserts streamed entities in chunks by the inserter
+insertEntities_ :: MonadIO m => Connection -> ([a] -> IO b) -> S.Stream (S.Of a) m r -> m [b]
+insertEntities_ conn inserter s = do
+  s
+    & chunksOf insertChunkSize
+    & S.mapped S.toList
+    & S.mapM (liftIO . inserter)
+    & S.toList_
+
+insertEntities :: MonadIO m => Connection -> ([a] -> IO b) -> S.Stream (S.Of a) m r -> S.Stream (S.Of b) m r
+insertEntities conn inserter s = do
+  s
+    & chunksOf insertChunkSize
+    & S.mapped S.toList
+    & S.mapM (liftIO . inserter)
 
 addConstraintsToTweets :: Connection -> IO ()
 addConstraintsToTweets conn =

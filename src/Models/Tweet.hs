@@ -1,22 +1,36 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Models.Tweet
   ( Tweet (..),
+    Hashtag (..),
     parseTweet,
+    TweetsStream,
+    tweetWithParentTweets,
   )
 where
 
 import Control.Applicative (Alternative ((<|>)))
 import Control.Monad
 import Data.Aeson
+import Data.Aeson (ToJSON)
 import qualified Data.ByteString.Lazy as B
 import GHC.Generics
 import Models.Coordinates
 import Models.Country
 import Models.TweetMention
 import Models.User
+import qualified Streaming.Prelude as S
+
+type TweetsStream m r = S.Stream (S.Of Tweet) m r
+
+newtype Hashtag = MkHashtag String
+  deriving (Show)
+  deriving (FromJSON, ToJSON) via String
 
 data Tweet = Tweet
   { tweetId :: String,
@@ -29,7 +43,7 @@ data Tweet = Tweet
     tweetCountry :: Maybe Country,
     parentTweet :: Maybe Tweet,
     mentionedUsers :: [TweetMention],
-    tweetHashtags :: [String]
+    tweetHashtags :: [Hashtag]
   }
   deriving (Show, Generic)
 
@@ -68,3 +82,11 @@ instance FromJSON Tweet where
 
 parseTweet :: B.ByteString -> Maybe Tweet
 parseTweet = decode
+
+-- | Recursively extracts all the parent tweets and returns them
+-- | along with the given one
+tweetWithParentTweets :: Tweet -> [Tweet]
+tweetWithParentTweets tweet =
+  case parentTweet tweet of
+    Nothing -> [tweet]
+    Just a -> tweet : tweetWithParentTweets a

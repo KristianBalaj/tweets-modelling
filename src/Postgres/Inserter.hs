@@ -1,56 +1,76 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections #-}
+
 module Postgres.Inserter (insert) where
 
+import CmdLine
+import qualified Codec.Compression.GZip as GZip
+import Control.Exception (Exception)
+import Control.Monad
 import Control.Monad (join)
+import Control.Monad.Catch
+import Control.Monad.Catch (bracket)
+import Control.Monad.Trans.Resource (MonadResource, ResourceT, allocate, release, runResourceT)
+import Data.Aeson
+import Data.Aeson.Types (FromJSON (parseJSON))
+import Data.Bifunctor (second)
+import qualified Data.ByteString.Lazy as B
+import Data.Coerce
+import Data.Function
+import Data.Functor
 import Data.Int (Int64)
-import qualified Data.Map as Map
+import Data.List (isSuffixOf, partition)
+import qualified Data.Map.Strict as M
 import Data.Maybe
+import Data.Proxy (Proxy)
+import qualified Data.Text as T
+import Data.Text.Encoding (encodeUtf8)
+import qualified Data.Text.Lazy.IO as S
 import Data.Time
-import Database.PostgreSQL.Simple (Connection)
+import Data.Time (getZonedTime)
+import Database.PostgreSQL.Simple (ConnectInfo (..), Connection, Only (Only, fromOnly), ToRow, close, returning)
+import Models.Country
 import Models.Tweet
-import Postgres.Database.CountriesHandling (insertCountries)
 import Postgres.Database.Database
-import Postgres.Database.TweetsHandling (insertHashtags, insertTweetHashtags, insertTweets, insertUserMentions)
-import Postgres.Database.UsersHandling (insertUsers)
+  ( DbEntityId (..),
+    addConstraintsToTweetHashtags,
+    addConstraintsToTweetMentions,
+    addConstraintsToTweets,
+    connect2Postgres,
+    insertEntities,
+  )
+import Postgres.Database.TablesInserts (insertCountries, insertHashtags, insertTweetHashtags, insertTweets, insertUserMentions, insertUsers)
+import Streaming
+import Streaming (MonadIO (liftIO), Of ((:>)), chunksOf, concats)
+import qualified Streaming as S
+import Streaming.ByteString.Char8 as C
+import qualified Streaming.Prelude as S
+import Streaming.Zip (gunzip)
+import System.Directory (getDirectoryContents)
 
-insert :: [Tweet] -> IO ()
-insert tweets = do
-  conn <- connect2Postgres
+-- | The allocation and release was inspired by @danidiaz in my StackOverflow question
+-- | https://stackoverflow.com/questions/71072001/combining-resourcet-with-bracket-in-a-streaming-pipeline/71086092
+insert :: (MonadIO m, MonadResource m) => ConnectInfo -> TweetsStream m r -> m ()
+insert connInfo tweetsStream =
+  do
+    (key, conn) <- allocate (connect2Postgres connInfo) close
+    res <- inserting tweetsStream conn
+    release key
+    return res
+  where
+    inserting :: (MonadIO m, MonadResource m) => TweetsStream m r -> Connection -> m ()
+    inserting stream conn = do
+      _ <-
+        stream
+          & insertCountries conn
+          & S.store (insertTweets conn)
+          & S.map fst
+          & S.store (insertUsers conn . S.map tweetAuthor)
+          & S.store (insertUserMentions conn)
+          & insertHashtags conn
+          & insertTweetHashtags conn
 
-  countriesMap <- insertAllCountriesFromData conn tweets
-  hashtagsMap <- insertAllHashtagsFromData conn tweets
-
-  _ <- insertAllUsersFromData conn tweets
-  print . (++ " --- Finished inserting users.") =<< (show <$> getZonedTime)
-
-  _ <- insertAllTweets conn tweets countriesMap
-  print . (++ " --- Finished inserting tweets.") =<< (show <$> getZonedTime)
-
-  _ <- insertAllMentionsFromData conn tweets
-  print . (++ " --- Finished inserting tweet mentions.") =<< (show <$> getZonedTime)
-
-  _ <- insertAllTweetHashtags conn tweets hashtagsMap
-  print . (++ " --- Finished inserting tweet hashtags.") =<< (show <$> getZonedTime)
-
-  addConstraintsToTweets conn
-  addConstraintsToTweetMentions conn
-  addConstraintsToTweetHashtags conn
-
-insertAllCountriesFromData :: Connection -> [Tweet] -> IO (Map.Map String Int)
-insertAllCountriesFromData conn tweets = do
-  insertCountries conn (mapMaybe tweetCountry tweets)
-
-insertAllHashtagsFromData :: Connection -> [Tweet] -> IO (Map.Map String Int)
-insertAllHashtagsFromData conn tweets = do
-  insertHashtags conn (join $ map tweetHashtags tweets)
-
-insertAllTweets :: Connection -> [Tweet] -> Map.Map String Int -> IO Int64
-insertAllTweets conn tweets countryCodeToIdMap = insertTweets conn countryCodeToIdMap tweets
-
-insertAllTweetHashtags :: Connection -> [Tweet] -> Map.Map String Int -> IO Int64
-insertAllTweetHashtags conn tweets hashtagsToIds = insertTweetHashtags conn hashtagsToIds tweets
-
-insertAllMentionsFromData :: Connection -> [Tweet] -> IO Int64
-insertAllMentionsFromData = insertUserMentions
-
-insertAllUsersFromData :: Connection -> [Tweet] -> IO Int64
-insertAllUsersFromData conn tweets = insertUsers conn $ map tweetAuthor tweets
+      -- The constraints are added later to make the import faster
+      liftIO (addConstraintsToTweets conn)
+      liftIO (addConstraintsToTweetMentions conn)
+      liftIO (addConstraintsToTweetHashtags conn)

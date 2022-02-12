@@ -1,0 +1,4 @@
+{
+  "elasticPort": 9200,
+  "index": "tweets"
+}

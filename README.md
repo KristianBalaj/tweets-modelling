@@ -5,8 +5,20 @@ This tool processes `zipped` files in `.jsonl` format containing tweets' data (T
 Official documentation of the tweet json can be found here [here](https://developer.twitter.com/en/docs/twitter-api/v1/data-dictionary/overview/tweet-object).
 
 The test data I've been using were 41 `.jsonl.gz` files of size 5.65 GB altogether. After unpacking, the data has 40 GB.
+The code now uses the `streaming` library, but materializes the chunks that are imported.
+The chunk size is hardcoded to 5000 tweets.
 
 **Disclaimer**: The data has more fields than finally used for parsing (parsed fields can be seen in the models).
+
+## Running
+
+The following is the usage:
+
+`tweets-import --import [Postgres,Elastic] --connection-file FILE`
+
+There are example connection files in the root of the repository:
+- `elastic_connection.json`
+- `pg_connection.json`
 
 ## Elastic search import
 
