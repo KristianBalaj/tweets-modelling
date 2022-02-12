@@ -2,7 +2,6 @@
 
 module CmdLine (Params (..), ImportOptions (..), cmdParamsParser) where
 
-import Control.Arrow (Arrow (first))
 import Options.Applicative
 
 data ImportOptions = Postgres | Elastic deriving (Read, Show, Bounded, Enum)

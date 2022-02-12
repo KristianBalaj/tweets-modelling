@@ -13,14 +13,10 @@ module Postgres.Database.TablesInserts
   )
 where
 
-import Control.Monad (join)
-import Data.Bifunctor (second)
 import Data.Coerce (coerce)
 import Data.Function
 import Data.Int (Int64)
 import Data.List (partition)
-import Data.List.Split (chunksOf)
-import qualified Data.Map as M
 import Data.Maybe
 import Database.PostgreSQL.Simple
   ( Connection,
@@ -42,7 +38,6 @@ insertHashtags conn tweetsStream =
     & S.map (\tweet -> map (tweet,) (tweetHashtags tweet))
     & S.concat
     & insertEntities
-      conn
       ( \s ->
           do
             let (tweets, hashtags) = unzip s
@@ -56,7 +51,7 @@ insertHashtags conn tweetsStream =
 
 insertTweets :: MonadIO m => Connection -> S.Stream (S.Of (Tweet, Maybe (DbEntityId Country))) m r -> m Int64
 insertTweets conn tweetsStream =
-  sum <$> insertEntities_ conn insert tweetsStream
+  sum <$> insertEntities_ insert tweetsStream
   where
     insert :: [(Tweet, Maybe (DbEntityId Country))] -> IO Int64
     insert xs =
@@ -79,7 +74,7 @@ insertTweets conn tweetsStream =
           xs
 
 insertUserMentions :: MonadIO m => Connection -> TweetsStream m r -> m Int64
-insertUserMentions conn tweetsStream = sum <$> insertEntities_ conn insert userMentionsStream
+insertUserMentions conn tweetsStream = sum <$> insertEntities_ insert userMentionsStream
   where
     userMentionsStream =
       tweetsStream
@@ -89,7 +84,7 @@ insertUserMentions conn tweetsStream = sum <$> insertEntities_ conn insert userM
     insert xs = executeMany conn "INSERT INTO tweet_mentions (account_id, tweet_id) VALUES (?, ?)" xs
 
 insertTweetHashtags :: MonadIO m => Connection -> S.Stream (S.Of (Tweet, DbEntityId Hashtag)) m r -> m Int64
-insertTweetHashtags conn tweetsStream = sum <$> insertEntities_ conn insert tweetsStream
+insertTweetHashtags conn tweetsStream = sum <$> insertEntities_ insert tweetsStream
   where
     insert :: [(Tweet, DbEntityId Hashtag)] -> IO Int64
     insert chunk =
@@ -100,7 +95,6 @@ insertCountries :: MonadIO m => Connection -> TweetsStream m r -> Stream (Of (Tw
 insertCountries conn tweetsStream =
   tweetsStream
     & insertEntities
-      conn
       ( \tweets -> do
           let (withoutCountry, withCountry) = partition (isJust . tweetCountry) tweets
           res <- zip withCountry <$> insert (mapMaybe tweetCountry withCountry)
@@ -113,7 +107,7 @@ insertCountries conn tweetsStream =
 
 insertUsers :: MonadIO m => Connection -> S.Stream (S.Of User) m r -> m Int64
 insertUsers conn usersStream =
-  sum <$> insertEntities_ conn insert usersStream
+  sum <$> insertEntities_ insert usersStream
   where
     insert :: [User] -> IO Int64
     insert =

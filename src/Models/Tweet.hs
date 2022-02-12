@@ -17,7 +17,6 @@ where
 import Control.Applicative (Alternative ((<|>)))
 import Control.Monad
 import Data.Aeson
-import Data.Aeson (ToJSON)
 import qualified Data.ByteString.Lazy as B
 import GHC.Generics
 import Models.Coordinates

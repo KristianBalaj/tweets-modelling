@@ -33,7 +33,7 @@ tweetBulkCommands (MkElasticConfig _ tweetsIndex) elasticTweet@(ElasticTweet twe
   ]
 
 insert :: MonadIO m => ElasticConfig -> TweetsStream m r -> m ()
-insert conf@(MkElasticConfig elasticPort _) tweetsStream =
+insert conf@(MkElasticConfig elasticPort' _) tweetsStream =
   tweetsStream
     & chunksOf bulkSize
     & S.mapped S.toList
@@ -46,5 +46,5 @@ insert conf@(MkElasticConfig elasticPort _) tweetsStream =
       $ do
         let body = L.intercalate "\n" (join $ map (tweetBulkCommands conf . ElasticTweet) tweetsChunk) <> "\n"
 
-        _ <- req POST (http "localhost" /: "_bulk") (ReqBodyLbs body) bsResponse (header "Content-Type" "application/x-ndjson" <> port elasticPort)
+        _ <- req POST (http "localhost" /: "_bulk") (ReqBodyLbs body) bsResponse (header "Content-Type" "application/x-ndjson" <> port elasticPort')
         pure ()

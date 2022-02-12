@@ -8,34 +8,38 @@
 module Main where
 
 import CmdLine
-import qualified Codec.Compression.GZip as GZip
-import Control.Exception (NoMethodError (..))
-import Control.Monad
+  ( ImportOptions (..),
+    Params (Params),
+    cmdParamsParser,
+  )
+import Control.Monad (void)
 import Control.Monad.Catch
-import Control.Monad.Trans.Resource (MonadResource, ResourceT, allocate, release, runResourceT)
-import Data.Aeson
-import Data.Aeson.Types (FromJSON (parseJSON))
+  ( Exception,
+    Handler (Handler),
+    MonadThrow (throwM),
+    catches,
+  )
+import Control.Monad.Trans.Resource (MonadResource, runResourceT)
+import Data.Aeson (FromJSON, decode)
 import qualified Data.ByteString.Lazy as B
-import Data.Function
-import Data.Functor
+import Data.Function ((&))
 import Data.List (isSuffixOf)
-import Data.Maybe
-import Data.Proxy (Proxy)
 import qualified Data.Text as T
 import Data.Text.Encoding (encodeUtf8)
-import qualified Data.Text.Lazy.IO as S
-import Data.Time (getZonedTime)
-import Database.PostgreSQL.Simple (ConnectInfo (..), Connection)
-import Elastic.Inserter as Elastic
+import Database.PostgreSQL.Simple (ConnectInfo (..))
+import Elastic.Inserter as Elastic (ElasticConfig, insert)
 import Models.Tweet
+  ( TweetsStream,
+    parseTweet,
+    tweetWithParentTweets,
+  )
 import qualified Postgres.Inserter as PostgresInserter
-import Streaming
-import qualified Streaming as S
-import Streaming.ByteString.Char8 as C
+import Streaming (MonadIO (..), mapsM)
+import Streaming.ByteString.Char8 as C (lines, readFile, unpack)
 import qualified Streaming.Prelude as S
 import Streaming.Zip (gunzip)
 import System.Directory (getDirectoryContents)
-import System.Exit
+import System.Exit (ExitCode)
 import System.FilePath (combine)
 
 deriving instance FromJSON ConnectInfo

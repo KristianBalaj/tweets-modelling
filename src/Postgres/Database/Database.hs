@@ -11,12 +11,15 @@ module Postgres.Database.Database
   )
 where
 
-import Data.ByteString (ByteString)
-import Data.Function
-import Data.Monoid
+import Data.Function ((&))
 import Database.PostgreSQL.Simple
-import Models.Tweet
-import Streaming
+  ( ConnectInfo,
+    Connection,
+    connectPostgreSQL,
+    execute_,
+    postgreSQLConnectionString,
+  )
+import Streaming (MonadIO (..), chunksOf)
 import qualified Streaming.Prelude as S
 
 newtype DbEntityId a = MkDbEntityId Int
@@ -28,16 +31,16 @@ connect2Postgres :: ConnectInfo -> IO Connection
 connect2Postgres = connectPostgreSQL . postgreSQLConnectionString
 
 -- | Inserts streamed entities in chunks by the inserter
-insertEntities_ :: MonadIO m => Connection -> ([a] -> IO b) -> S.Stream (S.Of a) m r -> m [b]
-insertEntities_ conn inserter s = do
+insertEntities_ :: MonadIO m => ([a] -> IO b) -> S.Stream (S.Of a) m r -> m [b]
+insertEntities_ inserter s = do
   s
     & chunksOf insertChunkSize
     & S.mapped S.toList
     & S.mapM (liftIO . inserter)
     & S.toList_
 
-insertEntities :: MonadIO m => Connection -> ([a] -> IO b) -> S.Stream (S.Of a) m r -> S.Stream (S.Of b) m r
-insertEntities conn inserter s = do
+insertEntities :: MonadIO m => ([a] -> IO b) -> S.Stream (S.Of a) m r -> S.Stream (S.Of b) m r
+insertEntities inserter s = do
   s
     & chunksOf insertChunkSize
     & S.mapped S.toList
